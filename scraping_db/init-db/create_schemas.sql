@@ -1,0 +1,2 @@
+CREATE SCHEMA rawdata;
+CREATE SCHEMA proc;

@@ -1,0 +1,11 @@
+scrapers/.spyproject/
+scrapers/kernel.json
+scrapers/proc/
+.env
+scrapers/.env
+__pycache__/
+*.pyc
+scrapers/logs
+*.csv
+*.xlsx
+scraping_db/init-db/superset_setup.sql

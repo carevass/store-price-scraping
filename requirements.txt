@@ -1,0 +1,11 @@
+psycopg[binary,pool]
+bs4
+pandas >=3.0
+sqlalchemy
+selenium
+spyder-kernels
+scikit-learn
+matplotlib
+unidecode
+requests
+python-dotenv

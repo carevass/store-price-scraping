@@ -1,0 +1,92 @@
+services:
+  orchestration:
+    image: apache/airflow:latest
+    command: standalone
+    ports:
+      - "8080:8080"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
+      - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
+      - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
+      - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+
+
+    networks:
+      - scraping
+  scrapers:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./scrapers/Dockerfile
+    container_name: supermarket_scraping
+    image: supermarket_scraping:latest
+    volumes:
+      - ./scrapers:/app
+      - .env:/app/.env
+    networks:
+      - scraping
+    #these ports are just so I can connect the scraper service to my local spyder to run scripts from there.
+    #same with the command below, these can me removed if not using spyder.
+    ports:
+      - "5555:5555"
+      - "5556:5556"
+      - "5557:5557"
+      - "5558:5558"
+      - "5559:5559"
+    command: >
+      sh -c "rm -f /tmp/kernel.json /app/kernel.json &&
+      python -m spyder_kernels.console
+      --ip=0.0.0.0
+      --shell=5555
+      --iopub=5556
+      --stdin=5557
+      --control=5558
+      --hb=5559
+      -f=/tmp/kernel.json &
+      while [ ! -s /tmp/kernel.json ]; do sleep 0.5; done &&
+      sleep 0.5 &&
+      sed 's/0.0.0.0/127.0.0.1/g' /tmp/kernel.json > /app/kernel.json &&
+      wait"
+
+  scraping_db:
+    restart: unless-stopped
+    image: postgres:latest
+    container_name: scraping_data
+    environment:
+      POSTGRES_DB: ${PG_DATABASE}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    networks:
+      - scraping
+    ports:
+      - "2286:5432"
+    volumes:
+      - ./scraping_db/init-db:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql
+
+  superset:
+      restart: unless-stopped
+      build: ./superset
+      image: apache/superset:latest
+      container_name: superset
+      ports:
+        - "8088:8088"
+      networks:
+        - scraping
+      volumes:
+        - ./scrapers/scripts/env_vars.py:/app/pythonpath/env_vars.py
+        - ./.env:/app/pythonpath/.env
+        - ./superset_config.py:/app/pythonpath/superset_config.py
+      environment:
+        SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+        SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+      depends_on:
+        - scraping_db
+
+networks:
+  scraping:
+volumes:
+  postgres_data:
