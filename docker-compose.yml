@@ -10,8 +10,16 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - .env
+    user: "${AIRFLOW_UID:-50000}:0"
     environment:
-      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: 'True'
+      _AIRFLOW_DB_MIGRATE: 'true'
+      #AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+      #_AIRFLOW_WWW_USER_CREATE: 'true'
+      #_AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_WWW_USER_USERNAME:-airflow}
+      #_AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_WWW_USER_PASSWORD:-airflow}
 
 
     networks:
@@ -79,7 +87,7 @@ services:
       volumes:
         - ./scrapers/scripts/env_vars.py:/app/pythonpath/env_vars.py
         - ./.env:/app/pythonpath/.env
-        - ./superset_config.py:/app/pythonpath/superset_config.py
+        - ./superset/superset_config.py:/app/pythonpath/superset_config.py
       environment:
         SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
         SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
