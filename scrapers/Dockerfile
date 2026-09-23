@@ -15,9 +15,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
+
 # Copy entire project root
 COPY . /app
 
 #RUN pip install --upgrade pip           # to upgrade pip
 
 RUN pip install -r requirements.txt
+
+
+# Start FastAPI server when build is done
+CMD ["uvicorn", "scripts.api_server:app", "--host", "0.0.0.0", "--port", "6060"]
