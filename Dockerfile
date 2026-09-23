@@ -7,7 +7,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     wget \
-    cron \
     python3 \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
