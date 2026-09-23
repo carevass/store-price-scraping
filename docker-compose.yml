@@ -1,5 +1,6 @@
 services:
   orchestration:
+    container_name: etl_orchestration
     image: apache/airflow:latest
     command: standalone
     ports:
@@ -9,19 +10,20 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
-      - /var/run/docker.sock:/var/run/docker.sock
+      #- /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - .env
     user: "${AIRFLOW_UID:-50000}:0"
     environment:
+      #This removes login for the airflow UI
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: 'True'
       _AIRFLOW_DB_MIGRATE: 'true'
+      AIRFLOW_CONN_SCRAPING_CONTAINER: http://supermarket_scraping:6060
       #AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
       #_AIRFLOW_WWW_USER_CREATE: 'true'
       #_AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_WWW_USER_USERNAME:-airflow}
       #_AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_WWW_USER_PASSWORD:-airflow}
-
-
+    restart: unless-stopped
     networks:
       - scraping
   scrapers:
@@ -44,20 +46,22 @@ services:
       - "5557:5557"
       - "5558:5558"
       - "5559:5559"
-    command: >
-      sh -c "rm -f /tmp/kernel.json /app/kernel.json &&
-      python -m spyder_kernels.console
-      --ip=0.0.0.0
-      --shell=5555
-      --iopub=5556
-      --stdin=5557
-      --control=5558
-      --hb=5559
-      -f=/tmp/kernel.json &
-      while [ ! -s /tmp/kernel.json ]; do sleep 0.5; done &&
-      sleep 0.5 &&
-      sed 's/0.0.0.0/127.0.0.1/g' /tmp/kernel.json > /app/kernel.json &&
-      wait"
+      - "6060:6060"
+  #  command: >
+  #    sh -c "rm -f /tmp/kernel.json /app/kernel.json &&
+  #    python -m spyder_kernels.console
+  #    --ip=0.0.0.0
+  #    --shell=5555
+  #    --iopub=5556
+  #    --stdin=5557
+  #    --control=5558
+  #    --hb=5559
+  #    -f=/tmp/kernel.json &
+  #    while [ ! -s /tmp/kernel.json ]; do sleep 0.5; done &&
+  #    sleep 0.5 &&
+  #    sed 's/0.0.0.0/127.0.0.1/g' /tmp/kernel.json > /app/kernel.json &&
+  #    wait"
+
 
   scraping_db:
     restart: unless-stopped
@@ -76,24 +80,23 @@ services:
       - postgres_data:/var/lib/postgresql
 
   superset:
-      restart: unless-stopped
-      build: ./superset
-      image: apache/superset:latest
-      container_name: superset
-      ports:
-        - "8088:8088"
-      networks:
-        - scraping
-      volumes:
-        - ./scrapers/scripts/env_vars.py:/app/pythonpath/env_vars.py
-        - ./.env:/app/pythonpath/.env
-        - ./superset/superset_config.py:/app/pythonpath/superset_config.py
-      environment:
-        SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
-        SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
-      depends_on:
-        - scraping_db
-
+    build: ./superset
+    image: apache/superset:latest
+    container_name: superset
+    ports:
+      - "8088:8088"
+    networks:
+      - scraping
+    volumes:
+      - ./scrapers/scripts/env_vars.py:/app/pythonpath/env_vars.py
+      - ./.env:/app/pythonpath/.env
+      - ./superset/superset_config.py:/app/pythonpath/superset_config.py
+    environment:
+      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY}
+      SUPERSET_CONFIG_PATH: /app/pythonpath/superset_config.py
+    depends_on:
+      - scraping_db
+    restart: unless-stopped
 networks:
   scraping:
 volumes:
