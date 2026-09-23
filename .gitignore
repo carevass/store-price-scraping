@@ -1,3 +1,4 @@
+airflow/logs
 scrapers/.spyproject/
 scrapers/kernel.json
 scrapers/proc/
