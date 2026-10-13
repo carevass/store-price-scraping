@@ -2,14 +2,16 @@
 Supermarket data project - cleaning dictionaries
 
 This script covers dictionaries that map naming conventions to clean the supermarket
-data. Included conventions are store names and product classifications. 
+data. Included conventions are store names and product classifications.
 
 """
 import re
 #%%% Dicionaries
 store_dict = {
-    "store1":"store 1", #random numbers to use as ID
+    "store1":"store 1",
     "store2":"store 2",
+    "store3":"store 3",
+    "store4":"store 4",
     }
 
 classification_dict = {
@@ -420,5 +422,9 @@ classification_dict = {
 
 
     }
+
+store_brand = ['lider','zerca','bravo']
+
 #For product classification, Build regex pattern with word boundaries (\b)
 pattern = r'\b(' + '|'.join(map(re.escape, classification_dict)) + r')\b'
+pattern2 = r'\b(' + '|'.join(map(re.escape, store_brand)) + r')\b'

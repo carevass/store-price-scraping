@@ -18,7 +18,7 @@ import html
 #for data cleaning
 import hashlib
 from unidecode import unidecode
-from scripts.consts import store_dict, classification_dict, pattern
+from scripts.consts import store_dict, classification_dict, pattern, pattern2, store_brand
 
 
 #%%% Functions
@@ -62,6 +62,20 @@ def categorize_products(text):
         return classification_dict[match.group(1)]
 
     return None  # Or 'Uncategorized'
+
+def categorize_store_brand(text):
+    if not isinstance(text, str):
+            return None
+
+    # Clean text: convert to lowercase and extract words
+    # Using simple split or string cleanup
+    text= unidecode(text).lower().replace(',', '').replace('.', '')
+
+    match = re.search(pattern2, text.lower())
+    if match:
+        return 1
+
+    return 0  # Or 'Uncategorized'
 
 def getLinks(url, pages, product_data):
     try:
