@@ -18,7 +18,7 @@ services:
       #This removes login for the airflow UI
       AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: 'True'
       _AIRFLOW_DB_MIGRATE: 'true'
-      AIRFLOW_CONN_SCRAPING_CONTAINER: http://supermarket_scraping:6060
+      AIRFLOW_CONN_SCRAPING_CONTAINER: http://scraping_api:6060
       #AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
       #_AIRFLOW_WWW_USER_CREATE: 'true'
       #_AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_WWW_USER_USERNAME:-airflow}
@@ -26,8 +26,24 @@ services:
     restart: unless-stopped
     networks:
       - scraping
-  scrapers:
+
+  scrapers-api:
     restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./scrapers/Dockerfile
+    container_name: scraping_api
+    image: supermarket_scraping:latest
+    volumes:
+      - ./scrapers:/app
+      - .env:/app/.env
+    networks:
+      - scraping
+    ports:
+      - "6060:6060"
+    entrypoint: ["uvicorn", "scripts.api_server:app", "--host", "0.0.0.0", "--port", "6060"]
+
+  scrapers-dev:
     build:
       context: .
       dockerfile: ./scrapers/Dockerfile
@@ -41,26 +57,26 @@ services:
     #these ports are just so I can connect the scraper service to my local spyder to run scripts from there.
     #same with the command below, these can me removed if not using spyder.
     ports:
-      - "5555:5555"
-      - "5556:5556"
-      - "5557:5557"
-      - "5558:5558"
-      - "5559:5559"
-      - "6060:6060"
-  #  command: >
-  #    sh -c "rm -f /tmp/kernel.json /app/kernel.json &&
-  #    python -m spyder_kernels.console
-  #    --ip=0.0.0.0
-  #    --shell=5555
-  #    --iopub=5556
-  #    --stdin=5557
-  #    --control=5558
-  #    --hb=5559
-  #    -f=/tmp/kernel.json &
-  #    while [ ! -s /tmp/kernel.json ]; do sleep 0.5; done &&
-  #    sleep 0.5 &&
-  #    sed 's/0.0.0.0/127.0.0.1/g' /tmp/kernel.json > /app/kernel.json &&
-  #    wait"
+      - "6000:6000"
+      - "6001:6001"
+      - "6002:6002"
+      - "6005:6005"
+      - "6004:6004"
+
+    command: >
+      sh -c "rm -f /tmp/kernel.json /app/kernel.json &&
+      python -m spyder_kernels.console
+      --ip=0.0.0.0
+      --shell=6000
+      --iopub=6001
+      --stdin=6002
+      --control=6005
+      --hb=6004
+      -f=/tmp/kernel.json &
+      while [ ! -s /tmp/kernel.json ]; do sleep 0.5; done &&
+      sleep 0.5 &&
+      sed 's/0.0.0.0/127.0.0.1/g' /tmp/kernel.json > /app/kernel.json &&
+      wait"
 
 
   scraping_db:
