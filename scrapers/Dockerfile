@@ -22,7 +22,3 @@ COPY . /app
 #RUN pip install --upgrade pip           # to upgrade pip
 
 RUN pip install -r requirements.txt
-
-
-# Start FastAPI server when build is done
-CMD ["uvicorn", "scripts.api_server:app", "--host", "0.0.0.0", "--port", "6060"]
