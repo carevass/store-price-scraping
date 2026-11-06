@@ -14,15 +14,13 @@ a local Postgres database.
 
 """
 
-import base64
-import json
 import requests
 import pandas as pd
 from sqlalchemy import create_engine, text, inspect
 import datetime
 import numpy as np
 from scripts.env_vars import PG_HOST, PG_USER, PG_PASSWORD, PG_DATABASE, PG_PORT, STORE3_STARTLINK, STORE3_HOST, STORE3_AUTH
-from scripts.utils import clean_html, flatten_json
+from scripts.utils import flatten_json
 import re
 import time
 
@@ -52,7 +50,6 @@ def main():
     #until len(data['data']['list']) == 0
     for section in [3,4,5,7,8,9,11,12,13,14,15,16,17,18,19,20,1031,1098,1097,1096,1021,1095,1093,
                     1023,1019,1065,1020,1018,1026,1016,1024,1022,1017,1056]:
-        time.sleep(5)
         print(f"In section ID: {section}")
         for page in range(0,301):
             print(f"In Page: {page}")
@@ -64,6 +61,7 @@ def main():
             params['model.filterByIdSeccion'] = f'{section}'
             #make initial request
             response = requests.get(url, params=params, headers = headers)
+            time.sleep(10)
             #get the data from the request
             data = response.json()
             #get the data out of the response object
@@ -74,7 +72,7 @@ def main():
             else:
                 print("Done here...")
                 break
-            time.sleep(5)
+            
     
     flattened_context = flatten_json(all_products)    
     rows = {}
