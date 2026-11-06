@@ -7,14 +7,15 @@ data. Included conventions are store names and product classifications.
 """
 import re
 #%%% Dicionaries
-store_dict = {
+STORE_DICT = {
     "store1":"store 1",
     "store2":"store 2",
     "store3":"store 3",
     "store4":"store 4",
+    "store5":"store 5",
     }
 
-classification_dict = {
+CLASSIFICATION_DICT = {
 
 
     "habichuelas":"beans",
@@ -423,8 +424,8 @@ classification_dict = {
 
     }
 
-store_brand = ['lider','zerca','bravo']
+STORE_BRAND = ['lider','zerca','bravo', 'ole']
 
 #For product classification, Build regex pattern with word boundaries (\b)
-pattern = r'\b(' + '|'.join(map(re.escape, classification_dict)) + r')\b'
-pattern2 = r'\b(' + '|'.join(map(re.escape, store_brand)) + r')\b'
+PROD_CATEGORY_PATTERN = r'\b(' + '|'.join(map(re.escape, CLASSIFICATION_DICT)) + r')\b'
+STORE_BRAND_PATTERN = r'\b(' + '|'.join(map(re.escape, STORE_BRAND)) + r')\b'
