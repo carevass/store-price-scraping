@@ -18,8 +18,8 @@ import html
 #for data cleaning
 import hashlib
 from unidecode import unidecode
-from scripts.consts import store_dict, classification_dict, pattern, pattern2, store_brand
-
+from scripts.consts import STORE_DICT, CLASSIFICATION_DICT, PROD_CATEGORY_PATTERN, STORE_BRAND_PATTERN, STORE_BRAND
+import time
 
 #%%% Functions
 def get_hash(text):
@@ -29,20 +29,21 @@ def get_hash(text):
 def clean_data(table_name:str, db):
     data = pd.read_sql_query(f'SELECT * FROM rawdata.{table_name}', db)
     data['supermarket_name'] = f'{table_name}'
-    data['supermarket_id'] = data['supermarket_name'].map(store_dict)
+    data['supermarket_id'] = data['supermarket_name'].map(STORE_DICT)
 
     #2. hash product names
     data['product_name_id'] = data['product_name'] + data['product_id']
     data['hashed_product'] = data['product_name_id'].apply(get_hash)
-    if table_name == 'nacional':
-        #special cleaning for nacional, we added scraped site after starting scraping so we are backfilling these values for the same products as before
+    if table_name == 'store1':
+        #special cleaning for store 1, we added scraped site after starting scraping so we are backfilling these values for the same products as before
 
         group_cols = ["hashed_product"]
         data["scraped_site"] = (
             data.groupby(group_cols)["scraped_site"].bfill()
         )
-
-    #1. remove same-day duplicates
+    #impute missing price values by using the next non-NA value for that product
+    data['price'] = data.groupby(['supermarket_name', 'product_name'])['price'].bfill()
+    #. remove same-day duplicates
     data['scrape_date'] = pd.to_datetime(data['scrape_datetime']).dt.date
     #use all columns except price to consider duplicates
     data = data.sort_values('scrape_datetime').drop_duplicates(subset=data.columns.difference(['price','scrape_datetime','scraped_site',"product_sku"]),
@@ -57,9 +58,9 @@ def categorize_products(text):
     # Using simple split or string cleanup
     text= unidecode(text).lower().replace(',', '').replace('.', '')
 
-    match = re.search(pattern, text.lower())
+    match = re.search(PROD_CATEGORY_PATTERN, text.lower())
     if match:
-        return classification_dict[match.group(1)]
+        return CLASSIFICATION_DICT[match.group(1)]
 
     return None  # Or 'Uncategorized'
 
@@ -71,7 +72,7 @@ def categorize_store_brand(text):
     # Using simple split or string cleanup
     text= unidecode(text).lower().replace(',', '').replace('.', '')
 
-    match = re.search(pattern2, text.lower())
+    match = re.search(STORE_BRAND_PATTERN, text.lower())
     if match:
         return 1
 
@@ -80,6 +81,7 @@ def categorize_store_brand(text):
 def getLinks(url, pages, product_data):
     try:
         html = urlopen(url)
+        time.sleep(10)
     except URLError:
         print(f"the url {url} had some problem so we skipping")
         return
