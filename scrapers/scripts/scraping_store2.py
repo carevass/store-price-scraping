@@ -75,7 +75,7 @@ def main():
     page_size = 50
 
 
-    for page in range(220):  # Fetch up to 11,000 products
+    for page in range(51):  # Fetch up to 11,000 products
         payload["from"] = page * page_size
         payload["to"] = ((page + 1) * page_size) - 1
 
@@ -91,6 +91,7 @@ def main():
         params["extensions"] = json.dumps(extensions)
 
         response = requests.get(url, params=params)
+        time.sleep(10)
         data = response.json()
 
         # Extract products array
@@ -104,7 +105,7 @@ def main():
 
         all_products.extend(products)
         print(f"Fetched page {page + 1} ({len(products)} products). Total so far: {len(all_products)}")
-        time.sleep(5)
+        
         if page == 220 & len(all_products) == 0:
             print("Nothing was scraped, something went wrong. Check the data variable to see if there's issues with the requests.")
             break
@@ -154,6 +155,7 @@ def main():
     df['scrape_datetime'] = datetime.datetime.now()
     df['offer_availability'] = np.where(df['items_0_sellers_0_commertialoffer_availablequantity'] > 0, 'In Stock', 'Out of Stock')
     df['offer_pricevaliduntil'] = pd.to_datetime(df['offer_pricevaliduntil'])
+
 
     #Data export
     #homogenize the names and then export to postgres database
