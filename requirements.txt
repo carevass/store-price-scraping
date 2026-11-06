@@ -12,3 +12,8 @@ python-dotenv
 fastapi
 uvicorn[standard]
 pydantic
+statsmodels
+pyfixest
+plotly
+jupyterlab
+nbformat
