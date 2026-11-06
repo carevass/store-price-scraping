@@ -10,3 +10,5 @@ scrapers/logs
 *.csv
 *.xlsx
 scraping_db/init-db/superset_setup.sql
+scrapers/reports/.ipynb_checkpoints
+scrapers/scripts/check_graph_dip.py
