@@ -49,6 +49,7 @@ services:
       dockerfile: ./scrapers/Dockerfile
     container_name: supermarket_scraping
     image: supermarket_scraping:latest
+    profiles: [dev]
     volumes:
       - ./scrapers:/app
       - .env:/app/.env
@@ -77,7 +78,25 @@ services:
       sleep 0.5 &&
       sed 's/0.0.0.0/127.0.0.1/g' /tmp/kernel.json > /app/kernel.json &&
       wait"
+  scrapers-notebook:
+    build:
+      context: .
+      dockerfile: ./scrapers/Dockerfile
+    container_name: scraping_notebook
+    image: supermarket_scraping:latest
+    profiles: [notebook]
+    volumes:
+      - ./scrapers:/app
+      - .env:/app/.env
+    working_dir: /app
+    networks:
+      - scraping
+    ports:
+      - "4444:8888"
+    environment:
+          - PYTHONPATH=/app               # <--- This solves the import error globally
 
+    command: jupyter lab --ip=0.0.0.0 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
 
   scraping_db:
     restart: unless-stopped
