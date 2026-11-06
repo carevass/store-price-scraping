@@ -2,7 +2,7 @@
 01. Supermarket data project - cleaning & transformaion
 
 Date created: 19 August 2026
-Last updated: 13 October 2026
+Last updated: 17 October 2026
 
 author: Carlos Restituyo
 
@@ -33,18 +33,29 @@ def main():
     store2 = clean_data('store2', db)
     
     store3 = clean_data('store3', db)
+    
+    store4 = clean_data('store4', db)
+    
+    store5 = clean_data('store5', db)
     # append data
-    sm_data = pd.concat([store1,store2,store3], ignore_index = True)
+    sm_data = pd.concat([store1, store2, store3, store4, store5], ignore_index = True)
 
     sm_data['category'] = sm_data['product_name'].apply(categorize_products)
     sm_data['store_brand'] = sm_data['product_name'].apply(categorize_store_brand)
     #sm_data[['product_name']].sample(n = 1000, random_state = 541557).to_csv('proc/training_data.csv', index = False)
+    
+    #Stop cleaning if there are NAs in price to fix ASAP
+    if len(sm_data[sm_data.price.isna()][['price']]) > 0:
+        print("There are NAs in your price column. Fix before continuing with cleaning", flush = True)
+        return
 
+    
     #this x must be 0 eventually
     if len(sm_data[sm_data.category.isna()][['product_name', 'category']]) > 0:
         warnings.warn('''You have uncategorized products in your data, eventually you will need to finish
                     categorizing these products to use them in analysis.''')
 
+    
 
 
     #%% Export data
