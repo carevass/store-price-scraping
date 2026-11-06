@@ -35,6 +35,7 @@ def main():
     df = pd.DataFrame(product_data, columns= titles)
     df['scrape_datetime'] = datetime.datetime.now()
     df['price'] =pd.to_numeric(df.price, errors="coerce")
+    
 
     #export to postgresql database
     # establish connections
