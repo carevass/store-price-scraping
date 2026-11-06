@@ -19,6 +19,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy entire project root
 COPY . /app
 
-#RUN pip install --upgrade pip           # to upgrade pip
-
+RUN pip install --upgrade pip           # to upgrade pip
 RUN pip install -r requirements.txt
